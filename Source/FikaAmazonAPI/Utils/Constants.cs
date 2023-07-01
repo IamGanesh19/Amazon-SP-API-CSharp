@@ -90,7 +90,8 @@ namespace FikaAmazonAPI.Utils
         {
             BARCODE_2D,
             UNIQUE,
-            PALLET
+            PALLET,
+            SELLER_LABEL
         }
         /// <summary>
         /// List of all FeedType https://github.com/amzn/selling-partner-api-docs/blob/main/references/feeds-api/feedtype-values.md
@@ -107,7 +108,7 @@ namespace FikaAmazonAPI.Utils
             POST_PRODUCT_RELATIONSHIP_DATA,
             POST_FLAT_FILE_INVLOADER_DATA,
             POST_FLAT_FILE_LISTINGS_DATA,
-            POST_FLAT_FILE_BOOKLOADER_DATA_,
+            POST_FLAT_FILE_BOOKLOADER_DATA,
             POST_FLAT_FILE_CONVERGENCE_LISTINGS_DATA,
             POST_FLAT_FILE_PRICEANDQUANTITYONLY_UPDATE_DATA,
             POST_UIEE_BOOKLOADER_DATA,
@@ -166,11 +167,10 @@ namespace FikaAmazonAPI.Utils
             B2B_ANY_OFFER_CHANGED,
             ACCOUNT_STATUS_CHANGED,
             EXTERNAL_FULFILLMENT_SHIPMENT_STATUS_CHANGE,
-            //Missing Notification types
             PRODUCT_TYPE_DEFINITIONS_CHANGE,
             ORDER_STATUS_CHANGE,
-            PRICING_HEALTH
-
+            PRICING_HEALTH,
+            FBA_INVENTORY_AVAILABILITY_CHANGES
         }
 
         /// <summary>
@@ -518,7 +518,15 @@ namespace FikaAmazonAPI.Utils
             GET_FLAT_FILE_VAT_INVOICE_DATA_REPORT,
             GET_XML_VAT_INVOICE_DATA_REPORT,
             GET_FLAT_FILE_GEO_OPPORTUNITIES,
-            GET_DATE_RANGE_FINANCIAL_TRANSACTION_DATA
+            GET_DATE_RANGE_FINANCIAL_TRANSACTION_DATA,
+            GET_FBA_INVENTORY_PLANNING_DATA,
+            GET_MFN_PANEU_OFFER_STATUS,
+            GET_FBA_RECONCILIATION_REPORT_DATA,
+            GET_FBA_OVERAGE_FEE_CHARGES_DATA,
+            GET_EPR_MONTHLY_REPORTS,
+            GET_EPR_QUARTERLY_REPORTS,
+            GET_EPR_ANNUAL_REPORTS
+
 
         }
         [JsonConverter(typeof(StringEnumConverter))]
@@ -532,6 +540,13 @@ namespace FikaAmazonAPI.Utils
             PDF,
             [EnumMember(Value = "text/tab-separated-values; charset=UTF-8")]
             TXT,
+        }
+
+        public enum ContentFormate
+        {
+            AutoDetect,
+            File,
+            Text
         }
 
         [JsonConverter(typeof(StringEnumConverter))]
@@ -586,6 +601,7 @@ namespace FikaAmazonAPI.Utils
             Store,
             StoreStockMovement,
             WebstoreItem,
+            CartonContentsRequest
         }
 
         [JsonConverter(typeof(StringEnumConverter))]

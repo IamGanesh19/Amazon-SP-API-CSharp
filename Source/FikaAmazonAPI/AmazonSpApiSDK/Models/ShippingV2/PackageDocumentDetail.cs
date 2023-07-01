@@ -1,30 +1,29 @@
-﻿using System;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
 using Newtonsoft.Json;
+using System.Runtime.Serialization;
+using System.Text;
 
-namespace FikaAmazonAPI.AmazonSpApiSDK.Models.ShippingV2 {
-
-  /// <summary>
-  /// The post-purchase details of a package that will be shipped using a shipping service.
-  /// </summary>
-  [DataContract]
-  public class PackageDocumentDetail {
-    /// <summary>
-    /// Gets or Sets PackageClientReferenceId
-    /// </summary>
-    [DataMember(Name="packageClientReferenceId", EmitDefaultValue=false)]
-    [JsonProperty(PropertyName = "packageClientReferenceId")]
-    public string PackageClientReferenceId { get; set; }
+namespace FikaAmazonAPI.AmazonSpApiSDK.Models.ShippingV2
+{
 
     /// <summary>
-    /// Gets or Sets PackageDocuments
+    /// The post-purchase details of a package that will be shipped using a shipping service.
     /// </summary>
-    [DataMember(Name="packageDocuments", EmitDefaultValue=false)]
-    [JsonProperty(PropertyName = "packageDocuments")]
-    public PackageDocumentList PackageDocuments { get; set; }
+    [DataContract]
+    public class PackageDocumentDetail
+    {
+        /// <summary>
+        /// Gets or Sets PackageClientReferenceId
+        /// </summary>
+        [DataMember(Name = "packageClientReferenceId", EmitDefaultValue = false)]
+        [JsonProperty(PropertyName = "packageClientReferenceId")]
+        public string PackageClientReferenceId { get; set; }
+
+        /// <summary>
+        /// Gets or Sets PackageDocuments
+        /// </summary>
+        [DataMember(Name = "packageDocuments", EmitDefaultValue = false)]
+        [JsonProperty(PropertyName = "packageDocuments")]
+        public PackageDocumentList PackageDocuments { get; set; }
 
     /// <summary>
     /// Gets or Sets TrackingId
@@ -34,27 +33,29 @@ namespace FikaAmazonAPI.AmazonSpApiSDK.Models.ShippingV2 {
     public string TrackingId { get; set; }
 
 
-    /// <summary>
-    /// Get the string presentation of the object
-    /// </summary>
-    /// <returns>String presentation of the object</returns>
-    public override string ToString()  {
-      var sb = new StringBuilder();
-      sb.Append("class PackageDocumentDetail {\n");
-      sb.Append("  PackageClientReferenceId: ").Append(PackageClientReferenceId).Append("\n");
-      sb.Append("  PackageDocuments: ").Append(PackageDocuments).Append("\n");
-      sb.Append("  TrackingId: ").Append(TrackingId).Append("\n");
-      sb.Append("}\n");
-      return sb.ToString();
-    }
+        /// <summary>
+        /// Get the string presentation of the object
+        /// </summary>
+        /// <returns>String presentation of the object</returns>
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.Append("class PackageDocumentDetail {\n");
+            sb.Append("  PackageClientReferenceId: ").Append(PackageClientReferenceId).Append("\n");
+            sb.Append("  PackageDocuments: ").Append(PackageDocuments).Append("\n");
+            sb.Append("  TrackingId: ").Append(TrackingId).Append("\n");
+            sb.Append("}\n");
+            return sb.ToString();
+        }
 
-    /// <summary>
-    /// Get the JSON string presentation of the object
-    /// </summary>
-    /// <returns>JSON string presentation of the object</returns>
-    public string ToJson() {
-      return JsonConvert.SerializeObject(this, Formatting.Indented);
-    }
+        /// <summary>
+        /// Get the JSON string presentation of the object
+        /// </summary>
+        /// <returns>JSON string presentation of the object</returns>
+        public string ToJson()
+        {
+            return JsonConvert.SerializeObject(this, Formatting.Indented);
+        }
 
-}
+    }
 }

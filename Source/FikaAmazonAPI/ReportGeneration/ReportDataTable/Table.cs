@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FikaAmazonAPI.ReportGeneration.ReportDataTable
 {
@@ -40,12 +41,16 @@ namespace FikaAmazonAPI.ReportGeneration.ReportDataTable
             }
             for (int colIndex = 0; colIndex < header.Length; colIndex++)
                 header[colIndex] = header[colIndex] ?? string.Empty;
+
+            for (int colIndex = 0; colIndex < header.Length; colIndex++)
+                header[colIndex] = TheValue(header[colIndex]);
+
             this.header = header;
         }
 
-        public static Table ConvertFromCSV(string path, char separator = '\t')
+        public static Table ConvertFromCSV(string path, char separator = '\t', Encoding encoding = default)
         {
-            var lines = File.ReadAllLines(path);
+            var lines = File.ReadAllLines(path, encoding ?? Encoding.UTF8);
 
             var table = new Table(lines.First().Split(separator));
 
@@ -174,6 +179,11 @@ namespace FikaAmazonAPI.ReportGeneration.ReportDataTable
             }
 
             builder.AppendLine();
+        }
+
+        private static string TheValue(string txt)
+        {
+            return Regex.Replace(txt, "^\"|\"$", "");
         }
     }
 }
