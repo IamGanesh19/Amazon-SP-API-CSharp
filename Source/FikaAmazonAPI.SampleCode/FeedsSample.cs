@@ -99,19 +99,19 @@ namespace FikaAmazonAPI.SampleCode
         /// <summary>
         /// UnderTest
         /// </summary>
-        public void SubmitFeedAddProductMessage()
+        public void SubmitFeedAddProductMessage(string ASIN, string SKU)
         {
-            ConstructFeedService createDocument = new ConstructFeedService("A3J37AJU4O9RHK", "1.02");
+            ConstructFeedService createDocument = new ConstructFeedService(amazonConnection.GetCurrentSellerID, "1.02");
 
             var list = new List<ProductMessage>();
             list.Add(new ProductMessage()
             {
-                SKU = "8432225129778...",
+                SKU = SKU,
 
                 StandardProductID = new ConstructFeed.Messages.StandardProductID()
                 {
                     Type = "ASIN",
-                    Value = "B00M9B66BU"
+                    Value = ASIN
                 }
             });
             createDocument.AddProductMessage(list, OperationType.Update);
@@ -155,10 +155,10 @@ namespace FikaAmazonAPI.SampleCode
             GetFeedDetails(feedID);
         }
 
-        public async void SubmitFeedPRICING(double PRICE, string SKU)
+        public void SubmitFeedPRICING(decimal PRICE, string SKU)
         {
 
-            ConstructFeedService createDocument = new ConstructFeedService("A3J37AJU4O9RHK", "1.02");
+            ConstructFeedService createDocument = new ConstructFeedService(amazonConnection.GetCurrentSellerID, "1.02");
 
             var list = new List<PriceMessage>();
             list.Add(new PriceMessage()
@@ -167,20 +167,66 @@ namespace FikaAmazonAPI.SampleCode
                 StandardPrice = new StandardPrice()
                 {
                     currency = amazonConnection.GetCurrentMarketplace.CurrencyCode.ToString(),
-                    Value = (PRICE).ToString("0.00")
+                    Value = decimal.Round(PRICE, 2)
                 }
             });
             createDocument.AddPriceMessage(list);
 
             var xml = createDocument.GetXML();
 
-            var feedID = await amazonConnection.Feed.SubmitFeedAsync(xml, FeedType.POST_PRODUCT_PRICING_DATA);
+            var feedID = amazonConnection.Feed.SubmitFeed(xml, FeedType.POST_PRODUCT_PRICING_DATA);
 
             GetFeedDetails(feedID);
 
         }
 
-        public async void SubmitFeedPricingWithSalePrice(string sku, decimal price, decimal salePrice, DateTime startDate, DateTime endDate)
+        public async Task SubmitFeedPRICING_JSONAsync(string SKU, decimal PRICE, decimal? minPrice = null, decimal? maxPrice = null)
+        {
+            ConstructJSONFeedService createDocument = new ConstructJSONFeedService(amazonConnection.GetCurrentSellerID);
+
+            var list = new List<PriceMessage>();
+            var msg = new PriceMessage()
+            {
+                SKU = SKU,
+                StandardPrice = new StandardPrice()
+                {
+                    currency = amazonConnection.GetCurrentMarketplace.CurrencyCode.ToString(),
+                    Value = decimal.Round(PRICE, 2)
+                }
+            };
+
+            if (maxPrice != null)
+            {
+                msg.MaximumSellerAllowedPrice = new StandardPrice()
+                {
+                    currency = amazonConnection.GetCurrentMarketplace.CurrencyCode.ToString(),
+                    Value = decimal.Round(maxPrice.Value, 2)
+                };
+            }
+
+            if (minPrice != null)
+            {
+                msg.MinimumSellerAllowedPrice = new StandardPrice()
+                {
+                    currency = amazonConnection.GetCurrentMarketplace.CurrencyCode.ToString(),
+                    Value = decimal.Round(minPrice.Value, 2)
+                };
+            }
+
+
+            list.Add(msg);
+            createDocument.AddPriceMessage(list);
+
+            var jsonString = createDocument.GetJSON();
+
+            string feedID = await amazonConnection.Feed.SubmitFeedAsync(jsonString, FeedType.JSON_LISTINGS_FEED, null, null, ContentType.JSON);
+
+
+            await GetJsonFeedDetails(feedID);
+
+        }
+
+        public async Task SubmitFeedPricingWithSalePrice(string sku, decimal price, decimal salePrice, DateTime startDate, DateTime endDate)
         {
             var currencyCode = amazonConnection.GetCurrentMarketplace.CurrencyCode.ToString();
 
@@ -193,14 +239,14 @@ namespace FikaAmazonAPI.SampleCode
                 StandardPrice = new StandardPrice
                 {
                     currency = currencyCode,
-                    Value = price.ToString("0.00")
+                    Value = decimal.Round(price, 2)
                 },
                 Sale = new Sale
                 {
                     SalePrice = new StandardPrice
                     {
                         currency = currencyCode,
-                        Value = salePrice.ToString("0.00")
+                        Value = decimal.Round(salePrice, 2)
                     },
                     StartDate = startDate.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fffK"),
                     EndDate = endDate.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fffK")
@@ -215,8 +261,52 @@ namespace FikaAmazonAPI.SampleCode
             GetFeedDetails(feedId);
         }
 
+        public async Task SubmitJsonFeedPricing(string sku, decimal price)
+        {
+            string jsonString = $@"
+            {{
+              ""header"": {{
+                ""sellerId"": ""{amazonConnection.GetCurrentSellerID}"",
+                ""version"": ""2.0"",
+                ""issueLocale"": ""en_US""
+              }},
+              ""messages"": [
+                {{
+                  ""messageId"": 1,
+                  ""sku"": ""{sku}"",
+                  ""operationType"": ""PATCH"",
+                  ""productType"": ""PRODUCT"",
+                  ""patches"": [
+                    {{
+                      ""op"": ""replace"",
+                      ""path"": ""/attributes/purchasable_offer"",
+                      ""value"": [
+                        {{
+                          ""currency"": ""{amazonConnection.GetCurrentMarketplace.CurrencyCode}"",
+                          ""our_price"": [
+                            {{
+                              ""schedule"": [
+                                {{
+                                  ""value_with_tax"": {price}
+                                }}
+                              ]
+                            }}
+                          ]
+                        }}
+                      ]
+                    }}
+                  ]
+                }}
+              ]
+            }}";
 
-        public void SubmitFeedSale(double PRICE, string SKU)
+            string feedID = await amazonConnection.Feed.SubmitFeedAsync(jsonString, FeedType.JSON_LISTINGS_FEED, new List<string>() { amazonConnection.GetCurrentMarketplace.ID }, null, ContentType.JSON);
+
+            await GetJsonFeedDetails(feedID);
+        }
+
+
+        public void SubmitFeedSale(decimal PRICE, string SKU)
         {
 
             ConstructFeedService createDocument = new ConstructFeedService("A3J37AJU4O9RHK", "1.02");
@@ -228,7 +318,7 @@ namespace FikaAmazonAPI.SampleCode
                 StandardPrice = new StandardPrice()
                 {
                     currency = amazonConnection.GetCurrentMarketplace.CurrencyCode.ToString(),
-                    Value = (PRICE).ToString("0.00")
+                    Value = decimal.Round(PRICE, 2) //(PRICE).ToString("0.00")
                 },
                 Sale = new Sale()
                 {
@@ -237,7 +327,7 @@ namespace FikaAmazonAPI.SampleCode
                     SalePrice = new StandardPrice()
                     {
                         currency = amazonConnection.GetCurrentMarketplace.CurrencyCode.ToString(),
-                        Value = (PRICE - 10).ToString("0.00")
+                        Value = decimal.Round(PRICE, 2) - 10
                     }
                 }
             });
@@ -380,7 +470,25 @@ namespace FikaAmazonAPI.SampleCode
             GetFeedDetails(feedID);
         }
 
-        private void GetFeedDetails(string feedID)
+        public void SubmitFeedEasyShipDocument()
+        {
+            ConstructFeedService createDocument = new ConstructFeedService("{sellerId}", "1.02");
+            var list = new List<EasyShipDocumentMessage>();
+            list.Add(new EasyShipDocumentMessage()
+            {
+                AmazonOrderID = "AMZ1234567890123",
+                DocumentTypes = new List<EasyShipDocumentType>() {
+                    EasyShipDocumentType.ShippingLabel
+                }
+            });
+            createDocument.AddEasyShipDocumentMessage(list);
+            var xml = createDocument.GetXML();
+
+            var feedID = amazonConnection.Feed.SubmitFeed(xml, FeedType.POST_EASYSHIP_DOCUMENTS);
+            GetFeedDetails(feedID);
+        }
+
+        public void GetFeedDetails(string feedID)
         {
             string ResultFeedDocumentId = string.Empty;
             while (string.IsNullOrEmpty(ResultFeedDocumentId))
@@ -405,6 +513,33 @@ namespace FikaAmazonAPI.SampleCode
                 else Thread.Sleep(10000);
             }
         }
+
+        private async Task GetJsonFeedDetails(string feedID)
+        {
+            string resultFeedDocumentId = string.Empty;
+            string reportResult = string.Empty;
+            while (string.IsNullOrEmpty(resultFeedDocumentId))
+            {
+                Feed feedOutput = amazonConnection.Feed.GetFeed(feedID);
+                if (feedOutput.ProcessingStatus == Feed.ProcessingStatusEnum.DONE)
+                {
+                    FeedDocument output = amazonConnection.Feed.GetFeedDocument(feedOutput.ResultFeedDocumentId);
+                    reportResult = await amazonConnection.Feed.GetJsonFeedDocumentProcessingReportAsync(output);
+                    Console.WriteLine(reportResult);
+                }
+
+                if (!(feedOutput.ProcessingStatus == Feed.ProcessingStatusEnum.INPROGRESS ||
+                    feedOutput.ProcessingStatus == Feed.ProcessingStatusEnum.INQUEUE))
+                {
+                    break;
+                }
+                else
+                {
+                    Thread.Sleep(1000);
+                }
+            }
+        }
+
         private void DisplayProcessingReportMessage(ProcessingReportMessage processingReport)
         {
             Console.WriteLine("MessagesProcessed=" + processingReport.ProcessingSummary.MessagesProcessed);

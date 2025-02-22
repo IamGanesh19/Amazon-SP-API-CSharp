@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using static FikaAmazonAPI.Utils.Constants;
+using Microsoft.Extensions.Logging;
 
 namespace FikaAmazonAPI.SampleCode
 {
@@ -13,35 +13,20 @@ namespace FikaAmazonAPI.SampleCode
             .AddUserSecrets<Program>()
             .Build();
 
+            var factory = LoggerFactory.Create(builder => builder.AddConsole());
 
             AmazonConnection amazonConnection = new AmazonConnection(new AmazonCredential()
             {
-                AccessKey = config.GetSection("FikaAmazonAPI:AccessKey").Value,
-                SecretKey = config.GetSection("FikaAmazonAPI:SecretKey").Value,
-                RoleArn = config.GetSection("FikaAmazonAPI:RoleArn").Value,
                 ClientId = config.GetSection("FikaAmazonAPI:ClientId").Value,
                 ClientSecret = config.GetSection("FikaAmazonAPI:ClientSecret").Value,
                 RefreshToken = config.GetSection("FikaAmazonAPI:RefreshToken").Value,
                 MarketPlaceID = config.GetSection("FikaAmazonAPI:MarketPlaceID").Value,
                 SellerID = config.GetSection("FikaAmazonAPI:SellerId").Value,
                 IsDebugMode = true
-            });
+            }, loggerFactory: factory);
 
-            var x = amazonConnection.CatalogItem.GetCatalogItem202204(new FikaAmazonAPI.Parameter.CatalogItems.ParameterGetCatalogItem()
-            {
-                ASIN = "B01I3JW7PK",
-                includedData = new List<IncludedData> {
-               IncludedData.summaries,
-               IncludedData.identifiers,
-               IncludedData.summaries,
-               IncludedData.productTypes,
-               IncludedData.dimensions,
-               IncludedData.images,
-               IncludedData.relationships,
-               IncludedData.attributes//,
-               
-               }
-            });
+            FeedsSample feedsSample = new FeedsSample(amazonConnection);
+            _ = feedsSample.SubmitFeedPRICING_JSONAsync("B087YHP3HQ.151", 131.77M, 67.70M, 131.77M);
 
 
             Console.ReadLine();
